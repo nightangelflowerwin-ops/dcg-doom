@@ -20,6 +20,7 @@ import json
 import os
 import secrets
 import subprocess
+import urllib.request
 from pathlib import Path
 
 from solders.pubkey import Pubkey
@@ -27,9 +28,20 @@ from solders.pubkey import Pubkey
 import lanes_plan as P
 import testnet_driver as D
 
-RPC = "http://64.130.44.172:8899"
+RPC = os.environ.get("DOOM_TESTNET_RPC", "https://testnet.fogo.io")
 FUNDER = Path(os.environ.get("DOOM_FUNDER_KEY", D.ROOT / "out/chain/fogo-payer.json"))
 FUNDING = {"payer": 1_200, "lane": 30, "authority": 1}
+
+
+def verify_testnet_rpc() -> None:
+    """Check network identity before any CLI deployment or funding transaction."""
+    request = urllib.request.Request(RPC, data=json.dumps({
+        "jsonrpc": "2.0", "id": 1, "method": "getGenesisHash",
+    }).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        result = json.load(response)
+    if result.get("result") != D.TESTNET_GENESIS:
+        raise RuntimeError("refusing transaction: RPC is not the expected Fogo testnet")
 
 
 def prepare(args) -> None:
@@ -57,6 +69,7 @@ def prepare(args) -> None:
 
 
 def fund(args) -> None:
+    verify_testnet_rpc()
     c = D.load_config(args.run_dir)
     for name, pubkey in c["pubkeys"].items():
         amount = FUNDING["lane"] if name.startswith("lane-payer") else FUNDING.get(name)
@@ -69,6 +82,7 @@ def fund(args) -> None:
 
 
 def deploy(args) -> None:
+    verify_testnet_rpc()
     c = D.load_config(args.run_dir)
     subprocess.run(["solana", "program", "deploy", "--url", RPC, "--use-rpc", "--commitment", "confirmed",
                     "--keypair", c["key_paths"]["payer"], "--program-id", c["key_paths"]["doom-program"],
@@ -97,9 +111,16 @@ def _patch(config) -> None:
 
 
 def _measured_init_cu() -> list[int]:
-    """Measured CU per initialization phase (Doom ProgramTest on the lanes image)."""
-    m = json.loads((D.ROOT / "out/runs/lanes-doom-slice2-2026-10-04/baseline-metrics.json").read_text())
-    return [int(r["cu"]) for r in m["initialization"]["cu_by_phase"]]
+    """Optional local measurements; otherwise use one conservative phase per transaction."""
+    count = (sum(D.STATE_LENGTHS) + 16_383) // 16_384
+    path = os.environ.get("DOOM_INIT_METRICS")
+    if not path:
+        return [D.KERNEL_COMPUTE_CEILING] * count
+    m = json.loads(Path(path).read_text())
+    values = [int(r["cu"]) for r in m["initialization"]["cu_by_phase"]]
+    if len(values) != count or any(cu <= 0 or cu > D.KERNEL_COMPUTE_CEILING for cu in values):
+        raise ValueError("initialization measurements do not match the phase count/CU ceiling")
+    return values
 
 
 def provision_plan(c, resource: bytes):
@@ -200,8 +221,14 @@ async def provision(args) -> None:
         c["session_id"] = secrets.randbits(63)
         (args.run_dir / "driver-config.json").write_text(json.dumps(c, sort_keys=True, indent=2) + "\n")
     _patch(c)
-    plan = provision_plan(c, Path(args.resource).read_bytes())
+    resource = Path(args.resource).read_bytes()
+    if len(resource) != D.RESOURCE_BYTES or D.resource_tree(resource)[-1][0] != D.DOOM_RESOURCE_ROOT:
+        raise ValueError("resource does not match the pinned Doom bundle")
+    plan = provision_plan(c, resource)
     print(json.dumps({"provision_steps": len(plan.steps)}), flush=True)
+    if args.plan_only:
+        print(json.dumps({"plan_only": True, "transactions_submitted": 0}))
+        return
     await D.run_plan(args, plan)
 
 
@@ -271,6 +298,7 @@ def main() -> None:
         p.add_argument("--journal", default=name)
     sub.choices["provision"].add_argument("--resource", type=Path, required=True)
     sub.choices["provision"].add_argument("--new-session", action="store_true")
+    sub.choices["provision"].add_argument("--plan-only", action="store_true")
     sub.choices["advance"].add_argument("--cursor", type=int, required=True)
     sub.choices["advance"].add_argument("--target", type=int, required=True)
     sub.choices["abort"].add_argument("--lane", type=int, required=True)
