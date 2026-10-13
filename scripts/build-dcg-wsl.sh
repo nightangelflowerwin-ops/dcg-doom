@@ -13,6 +13,7 @@ if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
 fi
 export DOOM_SCRATCH="$root/.cache/doom-scratch"
 export DOOM_SBF_SOURCE_TREE=$(git rev-parse HEAD:stunts/doom-sbf)
+export SBF_LLVM_BIN="$tools/platform-tools-v1.51/llvm/bin"
 uv sync --locked
 uv run pytest tests/test_doom_deployment_portability.py tests/test_doom_lanes_plan.py -q
 sh stunts/doom-host/build.sh

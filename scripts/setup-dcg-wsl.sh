@@ -19,6 +19,17 @@ if [ ! -x "$tools/uv/uv" ]; then
   UV_INSTALL_DIR="$tools/uv" UV_NO_MODIFY_PATH=1 sh "$tools/uv-install.sh"
 fi
 # Align Agave's post-processing SDK with the compiler version.
+platform="$tools/platform-tools-v1.51"
+cached="$HOME/.cache/solana/v1.51/platform-tools"
+if [ ! -x "$platform/llvm/bin/clang" ] || [ ! -x "$platform/rust/bin/rustc" ]; then
+  if [ -x "$cached/llvm/bin/clang" ] && [ -x "$cached/rust/bin/rustc" ]; then
+    ln -s "$cached" "$platform"
+  else
+    mkdir -p "$platform"
+    curl --fail --location --retry 2 https://github.com/anza-xyz/platform-tools/releases/download/v1.51/platform-tools-linux-x86_64.tar.bz2 -o "$tools/platform-tools-v1.51.tar.bz2"
+    tar --strip-components 1 -xjf "$tools/platform-tools-v1.51.tar.bz2" -C "$platform"
+  fi
+fi
 sdk="$tools/sbf-sdk-v1.51"
 if [ ! -d "$sdk" ]; then
   cp -R "$tools/solana-release/bin/platform-tools-sdk/sbf" "$sdk"
@@ -34,6 +45,9 @@ elif 'version=v1.51' not in s:
     raise SystemExit('Unrecognized SDK platform-tools version')
 p.write_text(s)
 PY
+mkdir -p "$sdk/dependencies"
+ln -sfn "$platform" "$sdk/dependencies/platform-tools"
+touch "$sdk/dependencies/platform-tools-v1.51.md"
 cargo --version
 solana --version
 cargo-build-sbf --version
