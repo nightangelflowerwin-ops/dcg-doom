@@ -21,7 +21,7 @@ To use another build directory, run in PowerShell:
 .\Play-Local-Doom.ps1 -EngineDirectory 'C:\path\to\your\browser-build'
 ```
 
-Open the URL printed by the launcher. Click the game to focus; arrows move/turn,
+Open the URL printed by the launcher. Click the game to focus; W/S move, A/D strafe, left/right arrows turn,
 Ctrl fires, Space uses doors, Esc opens the menu. Browser fullscreen uses F11.
 This launches E1M1 at skill 3; the embedded WAD determines the game's content.
 Keep the terminal open and use Ctrl+C to stop serving. This path needs no WSL
