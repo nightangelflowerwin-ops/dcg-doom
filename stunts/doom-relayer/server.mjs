@@ -12,6 +12,7 @@
 
 import {createServer as createHttpServer} from "node:http";
 import {isIP} from "node:net";
+import {pathToFileURL} from "node:url";
 import {createPublicKey, verify as nodeVerify} from "node:crypto";
 import {readFileSync, rmSync, rmdirSync} from "node:fs";
 
@@ -1339,7 +1340,7 @@ export function createServer(relayer, {onLog = null, corsOrigin = "*"} = {}) {
 // is allowed to be long-running, and it is stopped with SIGINT/SIGTERM, which
 // asks the pipeline to write its receipt and exit.
 function isMain() {
-  return process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+  return process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 }
 
 // Chain-mode flags, named here so a mistyped one is a startup error rather

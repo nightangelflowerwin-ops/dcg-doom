@@ -220,7 +220,7 @@ test("chain mode is wired, and refuses to start without keys or a script", async
     mode: "chain",
     keysDir: "/keys",
     payerKey: "/payer.json",
-    script: new URL("../../doom-dcg/relay_pipeline.py", import.meta.url).pathname,
+    script: fileURLToPath(new URL("../../doom-dcg/relay_pipeline.py", import.meta.url)),
     stripRate: 16,
     advancePipelineDepth: 4,
     seconds: 600,
@@ -1248,7 +1248,7 @@ test("the input bound is asked of the child, never served from a cached status",
     mode: "chain",
     keysDir: "/keys",
     payerKey: "/payer.json",
-    script: new URL("../../doom-dcg/relay_pipeline.py", import.meta.url).pathname,
+    script: fileURLToPath(new URL("../../doom-dcg/relay_pipeline.py", import.meta.url)),
     runDir: "/run",
   });
   sender.closed = false;
