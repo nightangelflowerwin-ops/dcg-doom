@@ -1,5 +1,16 @@
 # Doom on DCG
 
+## Windows users: start here
+
+This fork adds a local Windows browser sandbox and a real headless Doom engine
+replay through WSL. Use the `windows-local` branch and follow the
+[complete Windows setup guide](WINDOWS-LOCAL.md) for technical requirements,
+installation, launch instructions, verification and troubleshooting.
+
+The browser sandbox uses synthetic frames; the WSL replay runs the real engine.
+Interactive real-engine browser gameplay and local blockchain execution are
+separate future integration work. The upstream project description follows.
+
 Doom running as a [durable-compute-graph](https://github.com/CrocSwap/durable-compute-graph)
 (DCG) stateful session on Fogo testnet: the engine advances on chain, three
 render lanes draw each frame, and a browser page plays it through a relayer.
