@@ -16,6 +16,7 @@ Keys live under out/chain/<run name>/ (0600) and are never printed.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import secrets
@@ -42,6 +43,24 @@ def verify_testnet_rpc() -> None:
         result = json.load(response)
     if result.get("result") != D.TESTNET_GENESIS:
         raise RuntimeError("refusing transaction: RPC is not the expected Fogo testnet")
+
+
+def verify_resource_source(config, resource_path: Path) -> None:
+    """Refuse deployment when the required on-chain resource bytes are absent."""
+    resource = resource_path.read_bytes()
+    if len(resource) != D.RESOURCE_BYTES or D.resource_tree(resource)[-1][0] != D.DOOM_RESOURCE_ROOT:
+        raise ValueError("resource does not match the pinned Doom bundle")
+    request = urllib.request.Request(RPC, data=json.dumps({
+        "jsonrpc": "2.0", "id": 1, "method": "getAccountInfo",
+        "params": [config["resource_key"], {"encoding": "base64", "commitment": "finalized"}],
+    }).encode(), headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        result = json.load(response)
+    account = result.get("result", {}).get("value")
+    if not account:
+        raise RuntimeError("refusing deployment: resource-source account is absent")
+    if account.get("executable") or account["data"][1] != "base64" or base64.b64decode(account["data"][0], validate=True) != resource:
+        raise RuntimeError("refusing deployment: resource-source account does not match local resource")
 
 
 def prepare(args) -> None:
@@ -84,6 +103,7 @@ def fund(args) -> None:
 def deploy(args) -> None:
     verify_testnet_rpc()
     c = D.load_config(args.run_dir)
+    verify_resource_source(c, args.resource)
     subprocess.run(["solana", "program", "deploy", "--url", RPC, "--use-rpc", "--commitment", "confirmed",
                     "--keypair", c["key_paths"]["payer"], "--program-id", c["key_paths"]["doom-program"],
                     str(args.image)], check=True)
@@ -289,6 +309,7 @@ def main() -> None:
     sub.add_parser("fund")
     p = sub.add_parser("deploy")
     p.add_argument("--image", type=Path, required=True)
+    p.add_argument("--resource", type=Path, required=True)
     for name in ("provision", "campaign", "abort", "advance"):
         p = sub.add_parser(name)
         p.add_argument("--node-count", type=int, default=1)

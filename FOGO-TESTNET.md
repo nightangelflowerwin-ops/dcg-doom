@@ -58,6 +58,9 @@ expected Fogo testnet before invoking the CLI. No mainnet deployment is intended
 2. Establish a sealed resource-source account readable by DCG on the target
    network. The upstream default source key is a local fixture, not a key we own.
    Fresh testnet source-account bootstrapping needs verification before deployment.
+   The default fixture source account was confirmed absent on the official
+   testnet RPC during this preparation. The deployment command now requires
+   `--resource` and checks that on-chain source bytes match before submitting.
 3. Obtain native testnet FOGO from https://faucet.fogo.io/ for the dedicated
    addresses. The existing `fund` command transfers from `DOOM_FUNDER_KEY`; it
    does not request faucet tokens. Its upstream amounts are not a measured cost
