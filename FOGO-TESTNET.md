@@ -1,5 +1,25 @@
 # Fogo testnet preparation
 
+## Verified preparation on October 13, 2026
+
+- WSL deployment/lanes checks: 11 passed.
+- Native Doom engine and SBF program build succeeded.
+- Final image: 941,192 bytes; ELF64, Solana Bytecode Format.
+- SHA-256: `ef0125525c7d35ca9a9852d4fec9bc6ee775ad737e54ddc2b27693f2d6932d5d`.
+- Build source revision: `63f1165b9d1ca49140391abbcd926230da3db943`.
+- No SBF stack-overflow diagnostics were found in the retained compiler log.
+- The official RPC's expected Fogo testnet genesis was verified.
+- Dedicated keys were prepared locally with mode 600; private keys are not published.
+
+**Deployment is pending.** The default resource-source account is absent,
+the prepared payer has zero native testnet balance, and runtime ProgramTest,
+session provisioning and input-linked gameplay verification remain undone.
+Compilation and ELF checks do not establish a working on-chain game.
+
+The setup mounts platform-tools v1.51 in an isolated SDK copy. This avoids
+Agave 2.3.9's post-processing installer fetching its bundled v1.48 default.
+The CLI's `--version` output may still describe that bundled default.
+
 This work is separate from the public browser game. It prepares a DCG/SBF
 build in Ubuntu WSL. A successful build alone does not deploy a program or
 establish playable on-chain Doom.
