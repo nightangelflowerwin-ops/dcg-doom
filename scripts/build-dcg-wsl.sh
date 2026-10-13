@@ -17,6 +17,15 @@ uv sync --locked
 uv run pytest tests/test_doom_deployment_portability.py tests/test_doom_lanes_plan.py -q
 sh stunts/doom-host/build.sh
 mkdir -p out/sbf
-cargo-build-sbf --manifest-path stunts/doom-dcg/Cargo.toml --features sbf --sbf-out-dir out/sbf --tools-version v1.51
+if cargo-build-sbf --manifest-path stunts/doom-dcg/Cargo.toml --features sbf --sbf-out-dir out/sbf --tools-version v1.51 > out/sbf/build.log 2>&1; then
+  cat out/sbf/build.log
+else
+  cat out/sbf/build.log >&2
+  exit 1
+fi
+if grep -E 'Stack offset of|overwrites values in the frame|overflows the maximum allowed frame space' out/sbf/build.log >/dev/null; then
+  echo 'SBF compiler reported a stack-frame overflow; image is not qualified.' >&2
+  exit 3
+fi
 sha256sum out/sbf/doom_dcg.so > out/sbf/doom_dcg.sha256
 echo 'SBF image built. This is not a deployed or qualified game session.'
