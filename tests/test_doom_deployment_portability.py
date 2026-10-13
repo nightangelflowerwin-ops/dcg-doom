@@ -31,3 +31,29 @@ def test_expected_testnet_is_accepted(monkeypatch):
     payload = json.dumps({'result': L.D.TESTNET_GENESIS}).encode()
     monkeypatch.setattr(L.urllib.request, 'urlopen', lambda *a, **k: io.BytesIO(payload))
     L.verify_testnet_rpc()
+
+def test_missing_source_refuses_deployment_before_cli(tmp_path, monkeypatch):
+    import types
+    path = tmp_path / 'resource.bin'
+    path.write_bytes(b'test')
+    monkeypatch.setattr(L.D, 'RESOURCE_BYTES', 4)
+    monkeypatch.setattr(L.D, 'resource_tree', lambda data: [[L.D.DOOM_RESOURCE_ROOT]])
+    monkeypatch.setattr(L, 'verify_testnet_rpc', lambda: None)
+    monkeypatch.setattr(L.D, 'load_config', lambda directory: {'resource_key': 'fixture'})
+    monkeypatch.setattr(L.urllib.request, 'urlopen', lambda *a, **k: io.BytesIO(b'{"result":{"value":null}}'))
+    submitted = []
+    monkeypatch.setattr(L.subprocess, 'run', lambda *a, **k: submitted.append(a))
+    with pytest.raises(RuntimeError, match='source account is absent'):
+        L.deploy(types.SimpleNamespace(run_dir=tmp_path, resource=path))
+    assert submitted == []
+
+def test_mismatched_source_bytes_are_rejected(tmp_path, monkeypatch):
+    import base64
+    path = tmp_path / 'resource.bin'
+    path.write_bytes(b'test')
+    monkeypatch.setattr(L.D, 'RESOURCE_BYTES', 4)
+    monkeypatch.setattr(L.D, 'resource_tree', lambda data: [[L.D.DOOM_RESOURCE_ROOT]])
+    payload = json.dumps({'result': {'value': {'executable': False, 'data': [base64.b64encode(b'wrong').decode(), 'base64']}}}).encode()
+    monkeypatch.setattr(L.urllib.request, 'urlopen', lambda *a, **k: io.BytesIO(payload))
+    with pytest.raises(RuntimeError, match='does not match'):
+        L.verify_resource_source({'resource_key': 'fixture'}, path)
