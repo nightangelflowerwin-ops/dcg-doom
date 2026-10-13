@@ -38,7 +38,7 @@ def verify_testnet_rpc() -> None:
     """Check network identity before any CLI deployment or funding transaction."""
     request = urllib.request.Request(RPC, data=json.dumps({
         "jsonrpc": "2.0", "id": 1, "method": "getGenesisHash",
-    }).encode(), headers={"Content-Type": "application/json"})
+    }).encode(), headers={"Content-Type": "application/json", "User-Agent": "DoomSol-testnet-preflight/1.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         result = json.load(response)
     if result.get("result") != D.TESTNET_GENESIS:
@@ -53,7 +53,7 @@ def verify_resource_source(config, resource_path: Path) -> None:
     request = urllib.request.Request(RPC, data=json.dumps({
         "jsonrpc": "2.0", "id": 1, "method": "getAccountInfo",
         "params": [config["resource_key"], {"encoding": "base64", "commitment": "finalized"}],
-    }).encode(), headers={"Content-Type": "application/json"})
+    }).encode(), headers={"Content-Type": "application/json", "User-Agent": "DoomSol-testnet-preflight/1.0"})
     with urllib.request.urlopen(request, timeout=30) as response:
         result = json.load(response)
     account = result.get("result", {}).get("value")
