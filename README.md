@@ -1,5 +1,17 @@
 # Doom on DCG
 
+## Play in your browser
+
+[Open DoomSol browser play](https://nightangelflowerwin-ops.github.io/dcg-doom/)
+and click **Play FreeDoom**. This uses the existing DoomSol Dwasm browser build
+with FreeDoom assets. Hosted visitors need a desktop keyboard and a modern
+WebAssembly-capable browser, with about 32 MB downloaded on first launch.
+No installation, wallet, WSL or engine compilation is required to play.
+
+This is local browser gameplay, separate from the DCG blockchain demonstration.
+The `browser-play` branch contains the public site, engine source archive,
+licenses and build metadata. Mobile/touch support has not been verified.
+
 ## Windows users: start here
 
 This fork adds a local Windows browser sandbox and a real headless Doom engine

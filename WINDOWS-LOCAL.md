@@ -1,5 +1,11 @@
 # Run dcg-doom locally on Windows
 
+**Want to play immediately?** Open
+[DoomSol browser play](https://nightangelflowerwin-ops.github.io/dcg-doom/) and
+click **Play FreeDoom**. This hosted path uses the existing browser build and
+requires no installation or compilation. The local development instructions
+below remain available for people who want to run or study the components.
+
 ## Play using an existing local browser engine
 
 If you already have a Dwasm/PrBoom browser build, use `Play-Local-Doom.cmd`.
