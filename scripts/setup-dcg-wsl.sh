@@ -18,6 +18,22 @@ if [ ! -x "$tools/uv/uv" ]; then
   curl --fail --location --retry 2 https://astral.sh/uv/install.sh -o "$tools/uv-install.sh"
   UV_INSTALL_DIR="$tools/uv" UV_NO_MODIFY_PATH=1 sh "$tools/uv-install.sh"
 fi
+# Align Agave's post-processing SDK with the compiler version.
+sdk="$tools/sbf-sdk-v1.51"
+if [ ! -d "$sdk" ]; then
+  cp -R "$tools/solana-release/bin/platform-tools-sdk/sbf" "$sdk"
+fi
+python3 - "$sdk/scripts/install.sh" <<'PY'
+import sys
+from pathlib import Path
+p = Path(sys.argv[1])
+s = p.read_text()
+if 'version=v1.48' in s:
+    s = s.replace('version=v1.48', 'version=v1.51')
+elif 'version=v1.51' not in s:
+    raise SystemExit('Unrecognized SDK platform-tools version')
+p.write_text(s)
+PY
 cargo --version
 solana --version
 cargo-build-sbf --version

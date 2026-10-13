@@ -17,7 +17,7 @@ uv sync --locked
 uv run pytest tests/test_doom_deployment_portability.py tests/test_doom_lanes_plan.py -q
 sh stunts/doom-host/build.sh
 mkdir -p out/sbf
-if cargo-build-sbf --manifest-path stunts/doom-dcg/Cargo.toml --features sbf --sbf-out-dir out/sbf --tools-version v1.51 > out/sbf/build.log 2>&1; then
+if cargo-build-sbf --sbf-sdk "$tools/sbf-sdk-v1.51" --manifest-path stunts/doom-dcg/Cargo.toml --features sbf --sbf-out-dir out/sbf --tools-version v1.51 --skip-tools-install > out/sbf/build.log 2>&1; then
   cat out/sbf/build.log
 else
   cat out/sbf/build.log >&2
