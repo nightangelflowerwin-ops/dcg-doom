@@ -1,5 +1,26 @@
 # Run dcg-doom locally on Windows
 
+## Play using an existing local browser engine
+
+If you already have a Dwasm/PrBoom browser build, use `Play-Local-Doom.cmd`.
+This is actual local gameplay, separate from CrocSwap's blockchain engine.
+The launcher requires Windows Node.js and an existing build containing
+`index.html`, `index.js`, `index.wasm`, and `index.data`. It uses the DoomSol
+build under your Documents folder by default. Those assets are not bundled in
+this fork, so a fresh clone alone does not provide this play mode.
+
+To use another build directory, run in PowerShell:
+
+```powershell
+.\Play-Local-Doom.ps1 -EngineDirectory 'C:\path\to\your\browser-build'
+```
+
+Open the URL printed by the launcher. Click the game to focus; arrows move/turn,
+Ctrl fires, Space uses doors, Esc opens the menu. Browser fullscreen uses F11.
+This launches E1M1 at skill 3; the embedded WAD determines the game's content.
+Keep the terminal open and use Ctrl+C to stop serving. This path needs no WSL
+or chain deployment once the browser build is available.
+
 Follow this guide to reproduce the setup verified on October 13, 2026.
 Use the **windows-local** branch. No GitHub login, wallet, paid hosting,
 dedicated GPU or access to CrocSwap's private server is required.
